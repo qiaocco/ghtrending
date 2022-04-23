@@ -28,6 +28,10 @@ type Developer struct {
 	Desc        string
 }
 
+// Fetcher 设计接口
+// 我想提供一个类型和一个创建该类型对象的方法，然后
+//调用对象的FetchRepos()和FetchDevelopers()方法就可以获取仓库和开发者列表。
+//但是我不希望用户了解这个类型的细节
 type Fetcher interface {
 	FetchRepos() ([]*Repository, error)
 	FetchDevelopers() ([]*Developer, error)
@@ -37,21 +41,23 @@ type trending struct {
 	opts options
 }
 
-func loadOptions(opts ...option) options {
-	o := options{
-		GithubURL: "https://github.com",
-	}
-	for _, option := range opts {
-		option(&o)
-	}
-
-	return o
-}
-
 func New(opts ...option) Fetcher {
 	return &trending{
 		opts: loadOptions(opts...),
 	}
+}
+
+func loadOptions(opts ...option) options {
+	o := options{
+		GithubURL: "https://github.com",
+	}
+	fmt.Printf("option=%#v\n", o)
+	for _, option := range opts {
+		option(&o)
+		fmt.Printf("option=%#v\n", o)
+	}
+
+	return o
 }
 
 func (t trending) FetchDevelopers() ([]*Developer, error) {
@@ -150,7 +156,6 @@ func (t trending) FetchRepos() ([]*Repository, error) {
 		repo.Stars, _ = strconv.Atoi(strings.Replace(starStr, ",", "", -1))
 		repo.Forks, _ = strconv.Atoi(strings.Replace(forkStr, ",", "", -1))
 
-		fmt.Printf("name=%v, lang=%v,add=%v, stars=%v,forks=%v\n", repo.Name, repo.Lang, repo.Add, repo.Stars, repo.Forks)
 		repos = append(repos, repo)
 	})
 	return repos, nil
